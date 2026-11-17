@@ -21,7 +21,7 @@
 :root{
   --bg:#fff6f8; --surface:#ffffff; --ink:#4a2433; --muted:#9a7584; --accent:#e0607e; --accent-2:#f7b9c8;
   --label:#8f4a63; --halo:#ffffff; --on-accent:#ffffff; --shadow:0 10px 30px rgba(120,40,70,.16);
-  --map-filter:sepia(.25) saturate(1.6) hue-rotate(295deg) brightness(1.03);
+  --map-filter:sepia(.35) saturate(1.25) hue-rotate(300deg) brightness(1.04) contrast(.95);
   --font-display:"Fraunces", Georgia, serif; --font-body:"Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
   --radius:20px; --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
   color-scheme:light;
@@ -274,20 +274,22 @@ const THEMES=[
   {id:"matcha",name:"Matcha",desc:"Taze yeşil",petal:"green",sw:["#f7fbf1","#5b8a47","#cfe2bf","#dde8e6"],meta:"#f2f6ec"},
   {id:"yildiz",name:"Yıldızlı Gece",desc:"Lacivert ve altın",petal:"star",sw:["#172238","#f0c46a","#4b5675","#0a0f1b"],meta:"#0e1525"}
 ];
-const CARTO='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 const OSM='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap katkıcıları</a>';
+const ESRI="Harita © Esri, HERE, Garmin, © OpenStreetMap katkıcıları";
+const AG="https://server.arcgisonline.com/ArcGIS/rest/services/";
 const MAPSTYLES=[
-  {id:"themed",name:"Temaya uygun",tiles:[["https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",CARTO,20]],tint:true},
+  {id:"themed",name:"Temaya uygun",tiles:[["https://tile.openstreetmap.org/{z}/{x}/{y}.png",OSM,19]],tint:true},
   {id:"standard",name:"Standart",tiles:[["https://tile.openstreetmap.org/{z}/{x}/{y}.png",OSM,19]]},
-  {id:"voyager",name:"Renkli",tiles:[["https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",CARTO,20]]},
-  {id:"light",name:"Açık",tiles:[["https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",CARTO,20]]},
-  {id:"dark",name:"Koyu",tiles:[["https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",CARTO,20]]},
-  {id:"sat",name:"Uydu",tiles:[["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}","Uydu © Esri, Maxar, Earthstar Geographics",19],
-                               ["https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png",CARTO,20,true]]}
+  {id:"voyager",name:"Renkli",tiles:[["https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",OSM+", Humanitarian OSM Team",19]],sub:"abc"},
+  {id:"light",name:"Açık",tiles:[[AG+"Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",ESRI,16],[AG+"Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}","",16,true]]},
+  {id:"dark",name:"Koyu",tiles:[[AG+"Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",ESRI,16],[AG+"Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}","",16,true]]},
+  {id:"sat",name:"Uydu",tiles:[[AG+"World_Imagery/MapServer/tile/{z}/{y}/{x}","Uydu © Esri, Maxar, Earthstar Geographics",19],
+                               [AG+"Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}","",19,true],
+                               [AG+"Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}","",19,true]]}
 ];
-const PREVIEW_TILE={themed:"https://a.basemaps.cartocdn.com/rastertiles/voyager/13/4864/3060.png",standard:"https://tile.openstreetmap.org/13/4864/3060.png",
-  voyager:"https://a.basemaps.cartocdn.com/rastertiles/voyager/13/4864/3060.png",light:"https://a.basemaps.cartocdn.com/light_all/13/4864/3060.png",
-  dark:"https://a.basemaps.cartocdn.com/dark_all/13/4864/3060.png",sat:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/3060/4864"};
+const PREVIEW_TILE={themed:"https://tile.openstreetmap.org/14/9728/6120.png",standard:"https://tile.openstreetmap.org/14/9728/6120.png",
+  voyager:"https://a.tile.openstreetmap.fr/hot/14/9728/6120.png",light:AG+"Canvas/World_Light_Gray_Base/MapServer/tile/13/3060/4864",
+  dark:AG+"Canvas/World_Dark_Gray_Base/MapServer/tile/13/3060/4864",sat:AG+"World_Imagery/MapServer/tile/14/6120/9728"};
 const MONTHS=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
 
 /* ---------- state ---------- */
@@ -330,7 +332,7 @@ function setMapStyle(id){
   const st=MAPSTYLES.find(m=>m.id===id)||MAPSTYLES[0];S.mapStyle=st.id;LS("bh_map",st.id);
   baseLayers.forEach(l=>map.removeLayer(l));baseLayers=[];
   for(const [url,attr,maxN,overlay] of st.tiles){
-    const l=L.tileLayer(url,{attribution:attr,maxZoom:19,maxNativeZoom:maxN,subdomains:"abcd",detectRetina:false,className:overlay?"labels":"basemap",crossOrigin:true});
+    const l=L.tileLayer(url,{attribution:attr,maxZoom:19,maxNativeZoom:maxN,subdomains:st.sub||"abc",detectRetina:false,className:overlay?"labels":"basemap"});
     l.addTo(map);baseLayers.push(l);}
   document.body.classList.toggle("tinted",!!st.tint);
 }
@@ -627,6 +629,7 @@ function openThemes(scrollToMap){
 
 /* ---------- petals ---------- */
 const pc=$("petals"),px=pc.getContext("2d");let parts=[],raf=0;
+S.mapStyle=MAPSTYLES.some(m=>m.id===S.mapStyle)?S.mapStyle:"themed";
 const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 function setupPetals(){
   cancelAnimationFrame(raf);px.clearRect(0,0,pc.width,pc.height);parts=[];
